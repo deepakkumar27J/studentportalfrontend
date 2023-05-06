@@ -10,24 +10,30 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export default function Graduation() {
   const paperstyle={padding:'50px 20px', width:600, margin:"20px auto"}
-  const [duesClear, setDuesClear]=useState([])
+  const [duesClear, setDuesClear]=useState(Boolean)
 
   const navigate = useNavigate();
   const handleBack=(e)=>{
     e.preventDefault()
     navigate(`/homepage`)
   }
+  const handleDues=(e)=>{
+    e.preventDefault()
+    navigate(`/unpaidInvoices`)
+  }
 
   useEffect(()=>{
-    fetch(`http://localhost:8080/student/graduate?id=${11}`,{
-      method:"POST",
+    fetch(`http://localhost:8081/invoice/dues/${localStorage.getItem('emailId')}`,{
+      method:"GET",
       headers:{"Content-Type":"application/json"},
       // body:JSON.stringify(course)
     })
-    .then((result)=>{
-      setDuesClear(result);
-    }
-    )
+    .then(function(response) {
+      return response.text();
+    }).then(function(data) {
+      setDuesClear(data);
+      console.log("du--- ",duesClear);
+    });
   },[])
   return (
     <Container>
@@ -35,8 +41,8 @@ export default function Graduation() {
     <Paper elevation={3} style={paperstyle}>
       {
         <Paper elevation={6} style={{margin:"10px",padding:"15px", textAlign:"left"}} key={duesClear}>
-         { duesClear? <h2>Yes, you can graduate!!</h2>:
-         <h2>You are unable to graduate, please clear dues first.</h2>
+         { duesClear == "true" ? <h2>Yes, you can graduate!!</h2>:
+         <h2>You are unable to graduate, please clear <Button variant="contained" size='large' onClick={handleDues}>Dues</Button> first.</h2>
          }
         </Paper>
       }

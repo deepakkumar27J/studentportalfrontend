@@ -17,18 +17,27 @@ export function Student() {
   const [students, setStudents]=useState([])
 
   const navigate = useNavigate();
-  const handleClick=(e)=>{
+  const handleClick=async (e)=>{
     e.preventDefault()
     const student={emailId, password}
     console.log(student);
-    fetch("http://localhost:8080/student/login",{
+    await fetch("http://localhost:8080/student/login",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify(student)
-    }).then((result)=>{
-      console.log("Logged in", result.status);
-      if(result.status ==200)
+    }).then(async (result)=>{
+      if(result.status ==200){
+        const user = await result.json();
+        localStorage.setItem('firstName', user.firstName);
+        localStorage.setItem('lastName', user.lastName);
+        localStorage.setItem('emailId', user.emailId);
+        localStorage.setItem('id', user.id);
+        localStorage.setItem('phoneNumber', user.phoneNumber);
+        localStorage.setItem('cgpa', user.cgpa);
+        localStorage.setItem('yearIntake', user.yearIntake);
+        localStorage.setItem('dob', new Date(user.dob));
         navigate(`/homepage`)
+      }
       else 
         alert('Invalid Credentials')
     })
@@ -97,10 +106,6 @@ export function StudentHome() {
     e.preventDefault()
     navigate(`/graduation`)
   }
-  const handleProfile=(e)=>{
-    e.preventDefault()
-    navigate(`/editProfile`)
-  }
 
   useEffect(()=>{
     fetch("http://localhost:8080/student/getAll")
@@ -120,12 +125,19 @@ export function StudentHome() {
       }}
       noValidate
       autoComplete="off"
-    >
+    > 
+      
       <h1 style={{color:"gray"}}><u>Dashboard</u></h1>
       <br></br>
       <br></br>
       <br></br>
+      <h2>Welcome {localStorage.getItem('firstName')+' '+localStorage.getItem('lastName')}</h2>
       <br></br>
+      <h3>This is your homepage, further links for other portals are given below.</h3>
+      <br></br>
+      <h3>Go to <a class='btn btn-link'  href='http://localhost:3002'>Finance Portal </a> to find and pay invoices</h3>
+      <br></br>
+      <h3>Go to <a class='btn btn-link'  href='http://localhost:3003'>Library Portal </a> to find books or return books</h3>
       <br></br>
       <Paper square style={paperstyle} >
       <Button variant="contained" size='large' onClick={handleViewCourses}>View Courses</Button>
@@ -135,9 +147,6 @@ export function StudentHome() {
       </Paper>
       <Paper square style={paperstyle} >
       <Button variant="contained" color='error' size='large' onClick={handleGraduation}>View Graduation</Button>
-      </Paper>
-      <Paper square style={paperstyle} >
-      <Button variant="contained" size='large' onClick={handleProfile}>View Profile</Button>
       </Paper>
     </Box>
     </Paper>
@@ -225,39 +234,27 @@ export function UpdateStudent() {
   const paperstyle={padding:'50px 20px', width:600, margin:"20px auto"}
   const [firstName, setFirstName]=useState('')
   const [lastName, setLastName]=useState('')
-  const [phoneNumber, setPhoneNumber]=useState('')
-  const[password, setPassword]=useState('')
-  const [student, setStudent] = useState([])
 
+  const navigate = useNavigate();
   const handleClick=(e)=>{
     e.preventDefault()
     const _student={
-      password: password? password:student.password,
-      phoneNumber: phoneNumber,
+      id: localStorage.getItem('id'),
       firstName: firstName,
       lastName: lastName
     }
-    console.log(_student);
     fetch("http://localhost:8080/student/updateProfile",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify(_student)
     }).then(()=>{
-      console.log("student updated")
+      navigate(`/viewProfile`)
     })
   }
-
-  useEffect(()=>{
-    const _student={emailId:"deepak6@deepak.com", password:"fsdgj"}
-    fetch("http://localhost:8080/student/login",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(_student)
-    }).then(res=>res.json())
-    .then((result)=>{
-      setStudent(result)
-    })
-  },{})
+  const handleBack=(e)=>{
+    e.preventDefault()
+    navigate(`/viewProfile`)
+  }
   return (
     <Container>
       <Paper elevation={3} style={paperstyle}>
@@ -274,23 +271,57 @@ export function UpdateStudent() {
       type='text'
       name='First Name'
       InputLabelProps={{shrink:true}}
-      value={student.firstName || ''}
-      onChange={(e)=>setFirstName(e.target.value)}
+      // value={student.firstName || ''}
+      onChange={(e)=>{
+        localStorage.setItem('firstName', e.target.value);
+        setFirstName(e.target.value)}}
       />
       <TextField label="Last Name" fullWidth
-      value={student.lastName || ''}
-      onChange={(e)=>setLastName(e.target.value)}
-      />
-      <TextField id="updatePhoneNumber" label="Phone Number" fullWidth
-      value={student.phoneNumber || ''}
-      onChange={(e)=>setPhoneNumber(e.target.value)}
-      />
-      <TextField id="updatePassword" label="Password" type='password' autoComplete='current-password' fullWidth
-      value={''}
-      onChange={(e)=>setPassword(e.target.value)}
+      // value={student.lastName || ''}
+      onChange={(e)=>{
+        localStorage.setItem('lastName', e.target.value);
+        setLastName(e.target.value)
+      }}
       />
       <Button variant="contained" onClick={handleClick}>Update</Button>
     </Box>
+    </Paper>
+    <Button variant="contained" onClick={handleBack}>Back</Button>
+    </Container>
+  );
+}
+
+export function ViewProfile () {
+
+  const paperstyle={padding:'50px 20px', width:600, margin:"20px auto"}
+  const navigate = useNavigate();
+  const handleEdit=(e)=>{
+    e.preventDefault()
+    navigate(`/editProfile`)
+  }
+  const handleBack=(e)=>{
+    e.preventDefault()
+    navigate(`/homepage`)
+  }
+  return (
+    <Container>
+    <h1>Profile</h1>
+    <Paper elevation={3} style={paperstyle}>
+      {
+        <Paper elevation={6} style={{margin:"10px",padding:"15px", textAlign:"left"}}>
+          First Name:{"  "+localStorage.getItem('firstName')}<br/>
+          Last Name:{"  "+localStorage.getItem('lastName')}<br/>
+          Email/Username:{"  "+localStorage.getItem('emailId')}<br/>
+          Phone Number:{"  "+localStorage.getItem('phoneNumber')}<br/>
+          CGPA:{"  "+localStorage.getItem('cgpa')}<br/>
+          Year Intake:{"  "+localStorage.getItem('yearIntake')}<br/>
+          Date of Birth:{"  "+localStorage.getItem('dob')}<br/>
+
+          <Button variant="contained" onClick={handleEdit}>Edit Profile</Button>
+          </Paper>
+      }
+      <Button variant="contained" size='large' onClick={handleBack}>Back</Button>
+
     </Paper>
     </Container>
   );

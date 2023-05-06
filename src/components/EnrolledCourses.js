@@ -18,8 +18,7 @@ export default function EnrolledCourse() {
   }
 
   useEffect(()=>{
-    const studentId = 11;
-    fetch(`http://localhost:8080/course/enrolledCourses/${studentId}`)
+    fetch(`http://localhost:8080/course/enrolledCourses/${localStorage.getItem('id')}`)
     .then(res=>res.json())
     .then((result)=>{
       setCourses(result);
